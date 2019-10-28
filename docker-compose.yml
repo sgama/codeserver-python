@@ -1,0 +1,25 @@
+version: '3.5'
+
+networks:
+  dev-vlan:
+    name: dev-vlan
+
+services:
+  codeserver-python:
+    image: solardesigner/codeserver-python:latest
+    container_name: codeserver-python
+    command: --disable-telemetry --auth none --host 0.0.0.0 --port 8443
+    expose:
+      - 8443
+    ports:
+      - 8443:8443
+    networks:
+      - dev-vlan
+    restart: always
+    volumes:
+      - vscode_data:/home/coder/project
+
+volumes:
+  vscode_data:
+    driver: local
+    name: vscode_data
