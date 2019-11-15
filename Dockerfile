@@ -1,6 +1,6 @@
 FROM python:latest
 
-ENV CSVERSION=2.1650-vsc1.39.2
+ENV CSVERSION=2.1688-vsc1.39.2
 ENV CODESERVER=https://github.com/cdr/code-server/releases/download/${CSVERSION}/code-server${CSVERSION}-linux-x86_64.tar.gz \
     VSCODE_EXTENSIONS="/root/.local/share/code-server/extensions" \
     LANG=en_US.UTF-8 \
