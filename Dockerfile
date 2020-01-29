@@ -14,7 +14,7 @@ RUN mkdir -p code-server \
     && rm -rf code-server* && \
     apt-get update -y && \
     apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends bash git locales htop curl wget less more net-tools tmux net-tools && \
+    apt-get install -y --no-install-recommends bash git locales htop curl wget less net-tools tmux net-tools && \
     apt-get autoremove -y && \
     mkdir -p /home/coder/project && \
     code-server --install-extension ms-python.python && \
