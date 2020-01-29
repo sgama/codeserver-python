@@ -3,7 +3,7 @@ FROM python:latest
 ENV VERSION=2.1698
 ENV CSVERSION=2.1698-vsc1.41.1
 ENV CODESERVER=https://github.com/cdr/code-server/releases/download/${VERSION}/code-server${CSVERSION}-linux-x86_64.tar.gz \
-    DISABLE_TELEMETRY=true
+    DISABLE_TELEMETRY=true \
     SHELL=/bin/bash
 
 ADD $CODESERVER code-server.tar
