@@ -1,28 +1,60 @@
 FROM python:latest
 
-ENV VERSION=2.1698
-ENV CSVERSION=2.1698-vsc1.41.1
-ENV CODESERVER=https://github.com/cdr/code-server/releases/download/${VERSION}/code-server${CSVERSION}-linux-x86_64.tar.gz \
-    DISABLE_TELEMETRY=true \
-    SHELL=/bin/bash
+ENV CONTAINER_USER=coder
 
-ADD $CODESERVER code-server.tar
-
-RUN mkdir -p code-server \
-    && tar -xf code-server.tar -C code-server --strip-components 1 \
-    && cp code-server/code-server /usr/local/bin \
-    && rm -rf code-server* && \
-    apt-get update -y && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends bash git locales htop curl wget less net-tools tmux net-tools && \
+RUN apt-get update && \
+    apt-get install -y \
+        bash \
+        ca-certificates \
+        curl \
+        dumb-init \
+        git \
+        htop \
+        locales \
+        lsb-release \
+        man \
+        nano \
+        net-tools \
+        openssh-client \
+        pipenv \
+        procps \
+        sudo \
+        tmux \
+        vim \
+        wget && \
     apt-get autoremove -y && \
-    mkdir -p /home/coder/project && \
+    rm -rf /var/lib/apt/lists/* && \
+    # https://wiki.debian.org/Locale#Manually
+    sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen && \ 
+    locale-gen && \
+    # Create new user
+    adduser --gecos '' --disabled-password $CONTAINER_USER --shell /bin/bash --home /home/$CONTAINER_USER && \
+    echo "$CONTAINER_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
+    # Download and install fixuid
+    ARCH="$(dpkg --print-architecture)" && \
+    curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.5/fixuid-0.5-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
+    chown root:root /usr/local/bin/fixuid && \
+    chmod 4755 /usr/local/bin/fixuid && \
+    mkdir -p /etc/fixuid && \
+    printf "user: $CONTAINER_USER\ngroup: $CONTAINER_USER\n" > /etc/fixuid/config.yml
+
+# This way, if someone sets $DOCKER_USER, docker-exec will still work as
+# the uid will remain the same. note: only relevant if -u isn't passed to docker-run.
+USER 1000
+ENV LANG=en_US.UTF-8
+ENV SHELL=/bin/bash
+WORKDIR /home/${CONTAINER_USER}
+
+RUN curl -fsSL https://code-server.dev/install.sh | sh && \
     code-server --install-extension ms-python.python && \
     code-server --install-extension humao.rest-client && \
     code-server --install-extension HookyQR.beautify && \
-    code-server --install-extension liximomo.sftp
+    code-server --install-extension liximomo.sftp && \
+    code-server --install-extension eamodio.gitlens && \
+    code-server --install-extension ms-azuretools.vscode-docker && \
+    printf '{"workbench.colorTheme":"Default Dark+","rest-client.enableTelemetry":false,"editor.tokenColorCustomizations":null}\n' > ~/.local/share/code-server/User/settings.json
 
-WORKDIR /home/coder/project
-VOLUME /home/coder/project
-EXPOSE 8443
-ENTRYPOINT ["code-server"]
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--disable-telemetry", "--bind-addr", "0.0.0.0:8080", ".", "--auth", "none"]

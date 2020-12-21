@@ -1,23 +1,25 @@
-version: '3.5'
+version: '3.8'
 
 networks:
-  dev-vlan:
-    name: dev-vlan
+  proxy-tier:
+    name: proxy-tier
 
 services:
   codeserver-python:
-    image: solardesigner/codeserver-python:latest
+    image: ghcr.io/sgama/codeserver-python:latest
     container_name: codeserver-python
-    command: --disable-telemetry --auth none --host 0.0.0.0 --port 8443
     expose:
-      - 8443
+      - 8080
     ports:
-      - 8443:8443
+      - 8080:8080
     networks:
-      - dev-vlan
+      - proxy-tier
     restart: always
+    user:
+      1000:1000
     volumes:
-      - vscode_data:/home/coder/project
+      # - .config:/home/coder/.config
+      - vscode_data:/home/coder/project:rw
 
 volumes:
   vscode_data:
