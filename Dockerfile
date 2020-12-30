@@ -1,7 +1,5 @@
 FROM python:latest
 
-ENV CONTAINER_USER=coder
-
 RUN apt-get update && \
     apt-get install -y \
         bash \
@@ -28,22 +26,22 @@ RUN apt-get update && \
     sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen && \ 
     locale-gen && \
     # Create new user
-    adduser --gecos '' --disabled-password $CONTAINER_USER --shell /bin/bash --home /home/$CONTAINER_USER && \
-    echo "$CONTAINER_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
+    adduser --gecos '' --disabled-password coder --shell /bin/bash --home /home/coder && \
+    echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd && \
     # Download and install fixuid
     ARCH="$(dpkg --print-architecture)" && \
-    curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.5/fixuid-0.5-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
+    curl -fsSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
     mkdir -p /etc/fixuid && \
-    printf "user: $CONTAINER_USER\ngroup: $CONTAINER_USER\n" > /etc/fixuid/config.yml
+    printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 # This way, if someone sets $DOCKER_USER, docker-exec will still work as
 # the uid will remain the same. note: only relevant if -u isn't passed to docker-run.
 USER 1000
 ENV LANG=en_US.UTF-8
 ENV SHELL=/bin/bash
-WORKDIR /home/${CONTAINER_USER}
+WORKDIR /home/coder
 
 RUN curl -fsSL https://code-server.dev/install.sh | sh && \
     code-server --install-extension ms-python.python && \
