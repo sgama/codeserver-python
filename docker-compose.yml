@@ -6,6 +6,8 @@ networks:
 
 services:
   codeserver-python:
+    build:
+      context: .
     image: ghcr.io/sgama/codeserver-python:latest
     container_name: codeserver-python
     expose:
